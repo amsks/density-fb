@@ -52,6 +52,7 @@
   p { margin: 0 0 14px; }
   a { color: var(--link); }
   figure { margin: 24px 0; }
+  figure video { display: block; width: 100%; max-width: 980px; margin: 0 auto; height: auto; border-radius: 4px; background: #000; }
   figure img, .row img { display: block; width: 100%; max-width: 100%; height: auto; border-radius: 4px; }
   .row > * { min-width: 0; }
   .wide { width: min(1200px, calc(100vw - 32px)); margin-left: 50%; transform: translateX(-50%); }
@@ -218,8 +219,14 @@ Both methods are near zero during approach; Density-FB aligns more closely while
 </p>
 
 <figure class="wide">
-  <img src="static/img/fig_phase_strip.png" alt="Five frames of one Density-FB episode on cube-single: approach, acquisition, maintain, transport, success.">
-  <figcaption>The stages of one successful Density-FB episode on <code>cube-single</code> (translucent cube: goal).</figcaption>
+  <video src="static/video/cube_s1_t4_e2.mp4" poster="static/video/cube_s1_t4_e2_poster.jpg" autoplay muted loop playsinline controls preload="metadata" aria-label="FB and Density-FB side by side on the same cube-single episode, with the current stage named above each panel."></video>
+  <figcaption>
+    <b>Same start, same goal (translucent cube).</b>
+    <span class="fb">FB</span> (left) and <span class="dfb">Density-FB</span> (right) both reach, grasp and lift the cube.
+    During transport FB lets go of the cube short of the goal and does not recover; Density-FB places it on the goal at step 54.
+    The banner names the current stage, computed from the recorded hand, gripper and cube positions.
+    This is one example episode, chosen from those where FB fails after grasping and Density-FB succeeds.
+  </figcaption>
 </figure>
 <div class="row two">
   <div><img src="static/img/fig_failure_where.png" alt="First failed stage per method."><div class="sub">(a) first failed stage</div></div>
