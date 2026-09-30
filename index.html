@@ -189,7 +189,7 @@ $$ h_\theta(s,a,z,s^+) = \frac{\exp f_\theta(s,a,z,s^+)}{\mathbb{E}_{\tilde s^+ 
 </div>
 <p>
 The low-rank constraint now sits on the log-density, so the predicted occupancy is no longer confined to the linear span of $B$.
-<b>Critic.</b> On a minibatch, the next states serve as candidate futures. The TD target puts weight $1-\gamma$ on the observed next state and $\gamma$ on the target network's predicted distribution from the next state under the current policy; the critic fits this target by cross-entropy (TD InfoNCE applied to the task-conditioned policy family).
+<b>Critic.</b> On a minibatch, the next states serve as candidate futures. The TD target puts weight $1-\gamma$ on the observed next state and $\gamma$ on the target network's predicted distribution from the next state under the current policy; the critic fits this target by cross-entropy.
 <b>Actor.</b> The action value is the expected reward under the predicted distribution, $\hat Q(s,a,z) = \tfrac{1}{1-\gamma}\sum_j p_j(s,a,z)\, r(s^+_j)$, and the actor maximizes it with behavior regularization.
 <b>Zero-shot control.</b> For a new reward, a task vector $z_r$ is inferred from reward-labeled offline states, and the frozen policy $\pi(\cdot\mid s, z_r)$ is executed without further training.
 </p>
