@@ -115,7 +115,8 @@
   <figcaption>
     <b>FB vs. Density-FB on <code>cube-single</code>, same start and goal (star).</b>
     Heat map: where the critic expects the cube to be in the future (darker = more time; FB's negative values set to zero).
-    <span class="fb">FB</span> predicts a future spread over the whole table and never places the cube on the goal; <span class="dfb">Density-FB</span> predicts the goal and places it there.
+    <span class="fb">FB</span> predicts a future spread over the whole table and carries the cube away from the goal; <span class="dfb">Density-FB</span> predicts the goal and places the cube there.
+    Over 320 such starts with the cube in hand (64 states &times; 5 goals), Density-FB reaches the goal in 78% and FB in 23%.
   </figcaption>
 </figure>
 
