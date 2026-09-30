@@ -114,7 +114,7 @@
   <video src="static/video/lead_compare.mp4" poster="static/video/lead_compare_poster.jpg" autoplay muted loop playsinline controls preload="metadata" aria-label="FB and Density-FB side by side on cube-single from the same start, with the stage named above each panel and each critic's predicted future cube positions below."></video>
   <figcaption>
     <b>Same start, same goal (star) on OGBench <code>cube-single</code>, cube already in the gripper.</b>
-    Below each rollout: the critic's predicted future cube positions at the current state and action (darker = more predicted visits; black dot = cube now; gray line = cube path).
+    Heat map: the critic's discounted distribution of future cube positions if the agent takes its current action and then follows its policy toward the goal (darker = more expected time there; black dot = cube now; gray line = cube path).
     <span class="fb">FB</span> (left) predicts a future spread over the whole table, much like the dataset, and it barely changes; the policy loses its grip, picks the cube up again, carries it past the goal and drops it.
     <span class="dfb">Density-FB</span> (right) predicts a future concentrated at the goal; the policy regrasps once after a slip and places the cube on the goal.
   </figcaption>
