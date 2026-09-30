@@ -193,9 +193,6 @@ The low-rank constraint now sits on the log-density, so the predicted occupancy 
 <b>Actor.</b> The action value is the expected reward under the predicted distribution, $\hat Q(s,a,z) = \tfrac{1}{1-\gamma}\sum_j p_j(s,a,z)\, r(s^+_j)$, and the actor maximizes it with behavior regularization.
 <b>Zero-shot control.</b> For a new reward, a task vector $z_r$ is inferred from reward-labeled offline states, and the frozen policy $\pi(\cdot\mid s, z_r)$ is executed without further training.
 </p>
-<p>
-If the KL divergence between the true and predicted successor distributions at a bottleneck is below $(1-\gamma)^2\delta^2 / 2R^2$, where $\delta$ is the true action-value gap and $R$ the reward range, the predicted values keep the correct action ordering.
-</p>
 
 <div class="row side">
   <figure>
