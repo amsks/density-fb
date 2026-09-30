@@ -209,31 +209,21 @@ The low-rank constraint now sits on the log-density, so the predicted occupancy 
 
 <h2 id="manipulation">Where FB fails in manipulation</h2>
 <p>
-On OGBench <code>cube-single</code>, we split each evaluation episode into stages and record the first stage that fails.
-Most FB failures happen after grasping, while holding or carrying the cube.
-We then restore states from each stage and compare the critic's predicted difference between two actions' future cube occupancies with rollout estimates.
-Both methods are near zero during approach; Density-FB aligns more closely while holding and carrying, most of all during transport.
+Both policies start from the same state on OGBench <code>cube-single</code>, with the cube already in the gripper and the same goal.
+Under each rollout is the critic's prediction, at the current state and action, of where the cube will be in the future.
+FB's prediction barely changes along the way and stays spread over the whole table, much like the dataset.
+FB loses its grip, picks the cube up again, carries it past the goal and drops it there.
+Density-FB's prediction stays concentrated at the goal; it regrasps once after a slip and places the cube on the goal.
 </p>
 
 <figure class="wide">
-  <video src="static/video/cube_s1_t4_e2.mp4" poster="static/video/cube_s1_t4_e2_poster.jpg" autoplay muted loop playsinline controls preload="metadata" aria-label="FB and Density-FB side by side on the same cube-single episode, with the current stage named above each panel."></video>
+  <video src="static/video/lead_compare.mp4" poster="static/video/lead_compare_poster.jpg" autoplay muted loop playsinline controls preload="metadata" aria-label="FB and Density-FB side by side from the same held start, with the stage named above each panel and each critic's predicted future cube positions below."></video>
   <figcaption>
-    <b>Same start, same goal (translucent cube).</b>
-    <span class="fb">FB</span> (left) and <span class="dfb">Density-FB</span> (right) both reach, grasp and lift the cube.
-    During transport FB lets go of the cube short of the goal and does not recover; Density-FB places it on the goal at step 54.
-    The banner names the current stage, computed from the recorded hand, gripper and cube positions.
-    This is one example episode, chosen from those where FB fails after grasping and Density-FB succeeds.
-  </figcaption>
-</figure>
-<div class="row two">
-  <div><img src="static/img/fig_failure_where.png" alt="First failed stage per method."><div class="sub">(a) first failed stage</div></div>
-  <div><img src="static/img/fig_alignment_by_phase_main.png" alt="Cosine alignment between predicted and rollout action differences, by stage."><div class="sub">(b) critic alignment by stage</div></div>
-</div>
-<figure style="margin-top:6px">
-  <figcaption>
-    <b>Cube manipulation failures and critic alignment.</b>
-    (a) First failed stage: approach (reach), acquisition (grasp), maintain (hold), or transport (carry to goal).
-    (b) Cosine similarity between predicted and rollout-estimated action differences in discounted future cube visits; zero means no directional alignment. Large markers: mean &plusmn; SE over evaluated states; small markers: the three seed means.
+    <b>Same start, same goal (star).</b>
+    <span class="fb">FB</span> (left) and <span class="dfb">Density-FB</span> (right), each running its own policy.
+    Banner: the current stage (Maintain, Transport, Regrasp, Dropped, At goal), computed from the recorded gripper and cube positions.
+    Map: each critic's predicted future cube positions, averaged over goal samples for the task (darker = more predicted visits); black dot = cube now, gray line = cube path so far.
+    This is the start state of the figure at the top of the page.
   </figcaption>
 </figure>
 
