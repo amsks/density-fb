@@ -7,7 +7,7 @@
 <meta name="description" content="Density Matters: Normalized Successor Measures for Zero-Shot Control. Project page with figures and results.">
 <meta property="og:title" content="Density Matters: Normalized Successor Measures for Zero-Shot Control">
 <meta property="og:description" content="Density-FB keeps action-value differences at control bottlenecks that Forward-Backward representations erase.">
-<meta property="og:image" content="static/img/fig_lead_combined.png">
+<meta property="og:image" content="https://amsks.github.io/density-fb/static/video/lead_compare_poster.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@400;500;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
 <script>
@@ -52,7 +52,8 @@
   p { margin: 0 0 14px; }
   a { color: var(--link); }
   figure { margin: 24px 0; }
-  figure video { display: block; width: 100%; max-width: 980px; margin: 0 auto; height: auto; border-radius: 4px; background: #000; }
+  figure video + figcaption { max-width: 860px; margin-left: auto; margin-right: auto; }
+  figure video { display: block; width: 100%; max-width: 860px; margin: 0 auto; height: auto; border-radius: 4px; background: #000; }
   figure img, .row img { display: block; width: 100%; max-width: 100%; height: auto; border-radius: 4px; }
   .row > * { min-width: 0; }
   .wide { width: min(1200px, calc(100vw - 32px)); margin-left: 50%; transform: translateX(-50%); }
@@ -110,12 +111,12 @@
 </header>
 
 <figure class="wide">
-  <img src="static/img/fig_lead_combined.png" alt="Rollouts of FB and Density-FB on cube-single with their predicted future cube occupancies. FB drops the cube; Density-FB carries it to the goal.">
+  <video src="static/video/lead_compare.mp4" poster="static/video/lead_compare_poster.jpg" autoplay muted loop playsinline controls preload="metadata" aria-label="FB and Density-FB side by side on cube-single from the same start, with the stage named above each panel and each critic's predicted future cube positions below."></video>
   <figcaption>
-    <b>Predicted future cube occupancies and observed behavior.</b>
-    Both methods start from the same state with the same goal (star).
-    <span class="fb">FB</span> (top two rows) predicts future cube positions spread broadly, much like the dataset distribution (gray, left), and drops the cube.
-    <span class="dfb">Density-FB</span> (bottom two rows) predicts future visits concentrated near the goal, regrasps after a slip, and reaches the goal.
+    <b>Same start, same goal (star) on OGBench <code>cube-single</code>, cube already in the gripper.</b>
+    Below each rollout: the critic's predicted future cube positions at the current state and action (darker = more predicted visits; black dot = cube now; gray line = cube path).
+    <span class="fb">FB</span> (left) predicts a future spread over the whole table, much like the dataset, and it barely changes; the policy loses its grip, picks the cube up again, carries it past the goal and drops it.
+    <span class="dfb">Density-FB</span> (right) predicts a future concentrated at the goal; the policy regrasps once after a slip and places the cube on the goal.
   </figcaption>
 </figure>
 
@@ -217,26 +218,6 @@ The frozen policy $\pi(\cdot \mid s, z_r)$ is then executed without further trai
     </figcaption>
   </figure>
 </div>
-
-<h2 id="manipulation">Where FB fails in manipulation</h2>
-<p>
-Both policies start from the same state on OGBench <code>cube-single</code>, with the cube already in the gripper and the same goal.
-Under each rollout is the critic's prediction, at the current state and action, of where the cube will be in the future.
-FB's prediction barely changes along the way and stays spread over the whole table, much like the dataset.
-FB loses its grip, picks the cube up again, carries it past the goal and drops it there.
-Density-FB's prediction stays concentrated at the goal; it regrasps once after a slip and places the cube on the goal.
-</p>
-
-<figure class="wide">
-  <video src="static/video/lead_compare.mp4" poster="static/video/lead_compare_poster.jpg" autoplay muted loop playsinline controls preload="metadata" aria-label="FB and Density-FB side by side from the same held start, with the stage named above each panel and each critic's predicted future cube positions below."></video>
-  <figcaption>
-    <b>Same start, same goal (star).</b>
-    <span class="fb">FB</span> (left) and <span class="dfb">Density-FB</span> (right), each running its own policy.
-    Banner: the current stage (Maintain, Transport, Regrasp, Dropped, At goal), computed from the recorded gripper and cube positions.
-    Map: each critic's predicted future cube positions, averaged over goal samples for the task (darker = more predicted visits); black dot = cube now, gray line = cube path so far.
-    This is the start state of the figure at the top of the page.
-  </figcaption>
-</figure>
 
 <h2 id="results">Results</h2>
 <p>
