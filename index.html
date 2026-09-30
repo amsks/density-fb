@@ -64,9 +64,8 @@
   .row.side { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); align-items: center; }
   .row figure { margin: 0; }
   .sub { font-family: Inter, sans-serif; font-size: 0.85rem; color: var(--muted); text-align: center; margin-top: 4px; }
-  .tldr { background: var(--panel); border-left: 4px solid var(--dfb); padding: 16px 20px; border-radius: 4px; margin: 28px 0; }
-  .tldr ul { margin: 6px 0 0; padding-left: 20px; }
-  .tldr li { margin: 4px 0; }
+  ul.overview { padding-left: 22px; margin: 0 0 14px; }
+  ul.overview li { margin: 8px 0; }
   .fb { color: var(--fb); font-weight: 600; }
   .dfb { color: var(--dfb); font-weight: 600; }
   .eq { overflow-x: auto; padding: 4px 0; }
@@ -120,26 +119,12 @@
   </figcaption>
 </figure>
 
-<div class="tldr">
-  <b class="sans">TL;DR</b>
-  <ul>
-    <li><b>Problem.</b> Forward&ndash;Backward (FB) representations give zero-shot policies that work well for locomotion but fail at pick-and-place: the policy reaches the cube, then loses the grasp or never carries it to the goal.</li>
-    <li><b>Cause.</b> At <em>control bottlenecks</em>, states where the action decides which futures stay reachable, FB's low-rank least-squares fit of the successor measure can give two actions the same value even at its global optimum.</li>
-    <li><b>Method.</b> Density-FB treats $F^\top B$ as a score, normalizes the scores into a distribution over future states with a softmax, and trains it with a cross-entropy Bellman target.</li>
-    <li><b>Result.</b> Median per-task gain over FB of 63.2 / 30.0 / 8.5 points of success on OGBench / MetaWorld / ManiSkill, and correct action rankings with fewer features.</li>
-  </ul>
-</div>
-
-<h2 id="abstract">Abstract</h2>
-<p>
-Behavior foundation models (BFMs) offer the promise of zero-shot control: pretrain on offline data, then reuse the learned representation for downstream tasks without task-specific training.
-Successor-measure methods such as Forward&ndash;Backward representations (FB) realize this promise for diverse locomotion behaviors, but can struggle when success depends on precise interactions: in pick-and-place tasks, FB policies reach an object yet fail to maintain a grasp or carry it to a specified goal.
-We attribute these failures to <em>control bottlenecks</em>, states where the choice of action determines which futures remain reachable.
-We show that the low-rank squared approximation used by FB can suppress the difference between action values at these states, even at its global optimum, causing the agent to choose incorrect actions.
-To preserve these differences with limited capacity, we introduce Density-FB, which treats the bilinear output as a score, normalizes the scores into a distribution over future states with a softmax, and learns this distribution with a categorical Bellman objective.
-Across OGBench, MetaWorld, and ManiSkill, Density-FB improves manipulation success over FB by a median of 63.2, 30.0, and 8.5 percentage points per task, respectively.
-Additionally, Density-FB preserves correct action rankings with smaller embeddings than vanilla FB.
-</p>
+<h2 id="overview">Overview</h2>
+<ul class="overview">
+  <li>Forward&ndash;Backward (FB) representations give zero-shot policies that do well on locomotion but fail at pick-and-place: the policy grasps the cube, then drops it or never carries it to the goal.</li>
+  <li>The cause is <em>control bottlenecks</em>: states where one action decides which futures stay reachable. FB's low-rank least-squares fit can give both actions the same value there, even at its optimum.</li>
+  <li>Density-FB turns FB's output into a probability distribution over future states and trains it with a cross-entropy TD target. It beats FB on every manipulation task, by a median of 63 / 30 / 8.5 points of success on OGBench / MetaWorld / ManiSkill.</li>
+</ul>
 
 <h2 id="bottleneck">Control bottlenecks</h2>
 <p>
@@ -181,17 +166,43 @@ If two actions' future-state distributions differ only in a direction orthogonal
 
 <h2 id="method">Density-FB</h2>
 <p>
-Density-FB keeps FB's two networks but changes what their product means.
-The product $F_\theta(s,a,z)^\top B_\theta(s^+)$ becomes a score $f_\theta$, and a softmax over candidate future states turns scores into a probability distribution:
+Density-FB keeps FB's two networks, $F_\theta(s,a,z)$ and $B_\theta(s^+)$, but reads their product as a score instead of a density.
+A softmax over candidate future states turns the scores into a probability distribution.
+The low-rank constraint now sits on the log-density, so the prediction is no longer confined to the span of $B$.
+</p>
+
+<h3>Critic</h3>
+<p>
+On a minibatch of $n$ transitions, the next states $s^+_j := s'_j$ serve as the candidate futures.
+The critic predicts the discounted distribution of future states from $(s, a)$ under task $z$, over these candidates:
 </p>
 <div class="eq">
-$$ h_\theta(s,a,z,s^+) = \frac{\exp f_\theta(s,a,z,s^+)}{\mathbb{E}_{\tilde s^+ \sim \rho}\left[\exp f_\theta(s,a,z,\tilde s^+)\right]}, \qquad f_\theta = F_\theta(s,a,z)^\top B_\theta(s^+)/\tau. $$
+$$ p_j(s,a,z) = \frac{\exp\!\big(F_\theta(s,a,z)^\top B_\theta(s^+_j)/\tau\big)}{\sum_{\ell=1}^{n} \exp\!\big(F_\theta(s,a,z)^\top B_\theta(s^+_\ell)/\tau\big)}. $$
 </div>
 <p>
-The low-rank constraint now sits on the log-density, so the predicted occupancy is no longer confined to the linear span of $B$.
-<b>Critic.</b> On a minibatch, the next states serve as candidate futures. The TD target puts weight $1-\gamma$ on the observed next state and $\gamma$ on the target network's predicted distribution from the next state under the current policy; the critic fits this target by cross-entropy.
-<b>Actor.</b> The action value is the expected reward under the predicted distribution, $\hat Q(s,a,z) = \tfrac{1}{1-\gamma}\sum_j p_j(s,a,z)\, r(s^+_j)$, and the actor maximizes it with behavior regularization.
-<b>Zero-shot control.</b> For a new reward, a task vector $z_r$ is inferred from reward-labeled offline states, and the frozen policy $\pi(\cdot\mid s, z_r)$ is executed without further training.
+The TD target puts weight $1-\gamma$ on the observed next state and weight $\gamma$ on the target network's prediction from that next state, with the next action drawn from the current policy.
+The critic fits this target by cross-entropy:
+</p>
+<div class="eq">
+$$ \mathcal{L}_{\text{critic}} = -\frac{1}{n}\sum_{i,j} \Big[(1-\gamma)\,\mathbb{1}[j=i] + \gamma\,\bar p_j(s'_i, a'_i, z_i)\Big] \log p_j(s_i,a_i,z_i), \qquad a'_i \sim \pi(\cdot \mid s'_i, z_i). $$
+</div>
+
+<h3>Actor</h3>
+<p>
+The value of an action is the expected reward under the predicted distribution:
+</p>
+<div class="eq">
+$$ \hat Q_r(s,a,z) = \frac{1}{1-\gamma} \sum_{j=1}^{n} p_j(s,a,z)\, r(s^+_j). $$
+</div>
+<p>
+During pretraining, each task vector $z$ defines its own reward through the backward features, $r_z(s^+) = (B(s^+) - \hat\mu)^\top z / \sqrt{d}$.
+The actor $\pi(\cdot \mid s, z)$ maximizes $\hat Q_{r_z}(s,a,z)$ with behavior regularization.
+</p>
+
+<h3>Zero-shot control</h3>
+<p>
+For a new reward, a task vector $z_r$ is inferred from reward-labeled offline states.
+The frozen policy $\pi(\cdot \mid s, z_r)$ is then executed without further training.
 </p>
 
 <div class="row side">
